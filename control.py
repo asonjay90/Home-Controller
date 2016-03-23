@@ -43,9 +43,6 @@ class Controller:
     def get_status_message(self):
         """Fetches the status message of last run command.
 
-        Args:
-            None
-
         Rerurns:
             A string with a success or failure message
         """
@@ -55,22 +52,30 @@ class Controller:
     def get_status_code(self):
         """Fetches the HTTP status code of last run command.
 
-        Args:
-            None
-
         Rerurns:
             A string with a HTTP status code
         """
         return self.status_code
 
 
+    def get_status_hue(self):
+        """ Check if any bulb is currently on
+            If one is on, consider them all on
+
+        Returns:
+            bool of power status
+        """
+        status = False
+        # Always assume the bulbs are off
+        for bulb in self.hue_bulbs:
+            if bulb.on == True:
+                status = True
+                break
+        return status
+
+
     def setup_cec(self):
         """Creates config and opens connect to CEC (HDMI) adapter
-
-        Args:
-            None
-        Returns:
-            None
         """
         # Set up CEC config
         cecconfig = cec.libcec_configuration()
@@ -87,11 +92,6 @@ class Controller:
 
     def setup_gpio(self):
         """Sets up RaspberryPi GPIO pins and create dict of switches/pins
-
-        Args:
-            None
-        Returns:
-            None
         """
         # Set pin layout for GPIO and celing lights
         self.switches = {
@@ -116,11 +116,6 @@ class Controller:
 
     def setup_hue(self):
         """Connects to Hue bridge and creates object for bulbs
-
-        Args:
-            None
-        Returns:
-            None
         """
         # Set up Philips hue lights
         self.hue = Bridge('10.0.0.103')
@@ -130,13 +125,11 @@ class Controller:
 
 
     def process_command(self, device, action):
-        """Proccesses command from API and runs proper method
+        """Proccesses command from API and runs corresponding method
 
         Args:
             device: A string of device to control
             action: A string of an action for that device
-        Returns:
-            None
         """
         self.device = device.lower()
         action = action.lower()
@@ -147,7 +140,7 @@ class Controller:
             self.control_hue(action)
         elif device == 'av':
             self.control_hdmi(action)
-        elif device =='plex':
+        elif device == 'plex':
             self.control_plex(action)
         elif device == 'party':
             self.control_party(action)
@@ -162,8 +155,6 @@ class Controller:
 
         Args:
             light: A string of the light name in the switch dict
-        Returns:
-            None
         """
         try:
             # Set pin to toggle
@@ -198,18 +189,10 @@ class Controller:
 
         Args:
             action: A string of a command to perform
-        Returns:
-            None
         """
         try:
             if action == 'power':
-                status = False
-                # Check if any bulb is currently on
-                # If one is on, consider them all on
-                for bulb in self.hue_bulbs:
-                    if bulb.on == True:
-                        status = True
-                        break
+                status = self.get_status_hue()                
                 # Turn off bulbs
                 if status == True:
                     self.hue.set_light([1, 2, 3], 'on', False)
@@ -270,8 +253,6 @@ class Controller:
 
         Args:
             action: A string of 'on' or 'off'
-        Returns:
-            None
         """
         try:
             if action == 'on':
@@ -310,8 +291,6 @@ class Controller:
 
         Args:
             action: sting of action to perform via cec HDMI
-        Returns:
-            None
         """
         try:
             if action == 'watchtv':
@@ -349,39 +328,38 @@ class Controller:
 
         Args:
             action: string of action to perform
-        Returns:
-            None
         """
         try:
+            url = 'http://10.0.0.39:32500/player/playback/'
             if action == 'play':
-                response = urllib2.urlopen('http://10.0.0.39:32500/player/playback/play?type=video')
-                html = response.read()
-                
+                response = urllib2.urlopen(url + 'play?type=video')
+                response.read()
+
             elif action == 'pause':
-                response = urllib2.urlopen('http://10.0.0.39:32500/player/playback/pause?type=video')
-                html = response.read()
-                
+                response = urllib2.urlopen(url + 'pause?type=video')
+                response.read()
+
             elif action == 'skipnext':
-                response = urllib2.urlopen('http://10.0.0.39:32500/player/playback/skipNext?type=video')
-                html = response.read()
-                
+                response = urllib2.urlopen(url + 'skipNext?type=video')
+                response.read()
+
             elif action == 'skipprevious':
-                response = urllib2.urlopen('http://10.0.0.39:32500/player/playback/skipPrevious?type=video')
-                rhtml = response.read()
-            
+                response = urllib2.urlopen(url + 'skipPrevious?type=video')
+                response.read()
+
             else:
                 # return unsuccessful execution
                 self.status_message = "ERROR - '" + action + "' on '" + \
-                                     self.device + "' not found"
+                                       self.device + "' not found"
                 self.status_code = 501
                 print self.status_message
                 return
             # return successfull exectution
             self.status_message = "INFO - '" + action + "' on '" + \
-                                 self.device + "' completed successfully"
+                                   self.device + "' completed successfully"
             self.status_code = 200
             print self.status_message
-                
+
         except RuntimeError as exc:
             self.status_message = "ERROR - " + str(exc)
             self.status_code = 500
