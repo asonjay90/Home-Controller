@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from flask import Flask
+from flask import Flask, request
 from control import Controller
 API = Flask(__name__)
 CONTROLLER = Controller()
@@ -7,7 +7,11 @@ CONTROLLER = Controller()
 @API.route('/<device>/<action>')
 def apt_controller(device, action):
     try:
-        CONTROLLER.process_command(device, action)
+        brightness = int(request.args.get('brightness'))
+        if brightness:
+            CONTROLLER.process_command(device, action, option=brightness)
+        else:
+            CONTROLLER.process_command(device, action, option=None)
         # Response
         response = CONTROLLER.get_status_message()
         status = CONTROLLER.get_status_code()
