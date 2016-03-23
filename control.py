@@ -124,7 +124,7 @@ class Controller:
         print "HUE setup successfully"
 
 
-    def process_command(self, device, action):
+    def process_command(self, device, action, option=None):
         """Proccesses command from API and runs corresponding method
 
         Args:
@@ -137,7 +137,11 @@ class Controller:
         if device == 'ceiling':
             self.control_celing(action)
         elif device == 'hue':
-            self.control_hue(action)
+            print option
+            if option != None:
+                self.control_hue(action, option)
+            else:
+                self.control_hue(action)
         elif device == 'av':
             self.control_hdmi(action)
         elif device == 'plex':
@@ -184,7 +188,7 @@ class Controller:
             return 0
 
 
-    def control_hue(self, action):
+    def control_hue(self, action, bri=254):
         """Control the Philips hue bulbs using phue library
 
         Args:
@@ -192,14 +196,18 @@ class Controller:
         """
         try:
             if action == 'power':
-                status = self.get_status_hue()                
+                status = self.get_status_hue()
                 # Turn off bulbs
                 if status == True:
                     self.hue.set_light([1, 2, 3], 'on', False)
                 # Turn on bulbs
                 else:
-                    command = {'transitiontime' : 25, 'on' : True, 'bri' : 254}
+                    command = {'transitiontime' : 15, 'on' : True}
                     self.hue.set_light([1, 2, 3], command)
+            # Set the brightness of all bulbs - Keep current preset
+            elif action == 'bri':
+                for bulb in self.hue_bulbs:
+                    bulb.brightness = bri
             # Preset 'Energize'
             elif action == 'preset1':
                 for bulb in self.hue_bulbs:
@@ -219,7 +227,7 @@ class Controller:
             # Preset 'Love Shack'
             elif action == 'preset3':
                 for bulb in self.hue_bulbs:
-                    bulb.on = 1
+                    bulb.on = True
                     bulb.brightness = 254
                     #bulb.colormode = 'hs'
                     bulb.hue = 53498
