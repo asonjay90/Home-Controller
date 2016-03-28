@@ -7,9 +7,9 @@ CONTROLLER = Controller()
 @API.route('/<device>/<action>')
 def apt_controller(device, action):
     try:
-        brightness = int(request.args.get('brightness'))
+        brightness = request.args.get('brightness')
         if brightness:
-            CONTROLLER.process_command(device, action, option=brightness)
+            CONTROLLER.process_command(device, action, option=int(brightness))
         else:
             CONTROLLER.process_command(device, action, option=None)
         # Response

@@ -1,0 +1,73 @@
+HDMI:
+    watchtv:
+        commands:
+        - '10:04'       # Turn on TV
+        - '1f:82:21:00' # Set active sorce to Nexus Player
+        - '14:44:09'    # Press home Button
+        - '14:45'
+    alloff:
+        commands:
+        - '1f:36'       # Broadcast standby power
+    nav_up:
+        commands:
+        - '14:44:01'
+        - '14:45'       # Release the button
+    nav_down:
+        commands:
+        - '14:44:02'
+        - '14:45'
+    nav_left:
+        commands:
+        - '14:44:03'
+        - '14:45'
+    nav_right:
+        commands:
+        - '14:44:04'
+        - '14:45'
+    nav_select:
+        commands:
+        - '14:44:00'
+        - '14:45'
+    nav_back:
+        commands:
+        - '14:44:0D'
+        - '14:45'
+    nav_home:
+        commands:
+        - '14:44:09'
+        - '14:45'
+    vol_up:
+        commands:
+        - '10:44:33'
+        - '10:45'
+    vol_down:
+        commands:
+        - '10:44:42'
+        - '10:45'
+CEILING:              # Set 'buttons' to GPIO pins
+    row1:
+        commands:
+        - '3'
+    row2:
+        commands:
+        - '5'
+    row3:
+        commands:
+        - '7'
+    row4:
+        commands:
+        - '11'
+    bri:
+        commands:
+        - '13'
+    dim:
+        commands:
+        - '15'
+    allon:
+        commands:
+        - '13'
+        - '19'
+    alloff:
+        commands:
+        - '15'
+        - '21'
