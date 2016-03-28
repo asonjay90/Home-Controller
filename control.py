@@ -14,6 +14,7 @@ import urllib2
 from phue import Bridge
 import RPi.GPIO as GPIO
 import cec
+import yaml
 
 class Controller:
     """ This class is used as a remote to control my apt.
@@ -30,11 +31,11 @@ class Controller:
         self.device = None
         self.hue = None
         self.hue_bulbs = None
-        self.switches = None
         self.lib = None
         self.status_message = None
         self.status_code = None
         #setup devices
+        self.load_remotes()
         self.setup_cec()
         self.setup_gpio()
         self.setup_hue()
@@ -74,6 +75,30 @@ class Controller:
         return status
 
 
+    def load_remotes(self):
+        """ (re)Loads YAML containing all the commands for the remotes.
+
+        """
+        try:
+            with open('remotes.yaml', 'r') as da_file:
+                remotes = yaml.load(da_file)
+            self.HDMI = remotes['HDMI']
+            self.CEILING = remotes['CEILING']
+            self.HUE = remotes['HUE']
+
+            # return successfull execution
+            self.status_message = "INFO - Remotes reloaded successfully"
+            self.status_code = 200
+            print self.status_message
+
+        except RuntimeError as exc:
+            # return unsuccessfull execution with error
+            self.status_message = "ERROR - " + str(exc)
+            self.status_code = 501
+            print self.status_message
+            return 0
+            
+
     def setup_cec(self):
         """Creates config and opens connect to CEC (HDMI) adapter
         """
@@ -91,24 +116,14 @@ class Controller:
 
 
     def setup_gpio(self):
-        """Sets up RaspberryPi GPIO pins and create dict of switches/pins
+        """Sets up RaspberryPi GPIO pins
         """
-        # Set pin layout for GPIO and celing lights
-        self.switches = {
-            'row1':3,    # Light row 1 = pin 3
-            'row2':5,    # Light row 2 = pin 5
-            'row3':7,    # Light row 3 = pin 7
-            'row4':11,   # Light row 4 = pin 11
-            'bri':13,    # Brighten Lights = pin 13
-            'dim':15,    # Dim Lights = pin 15
-            'allon':19,  # All lights on = pin 19
-            'alloff':21  # All lights off = pin 21
-            }
         # Set up GPIO using BCM GPIO pin numbers
         GPIO.setmode(GPIO.BOARD)
         # Set relay pins as output
-        for switch in self.switches:
-            GPIO.setup(self.switches[switch], GPIO.OUT, initial=GPIO.HIGH)
+        for switch in self.CEILING:
+            for pin in self.CEILING[switch]['commands']:
+                GPIO.setup(int(pin), GPIO.OUT, initial=GPIO.HIGH)
         # Supress warnings
         GPIO.setwarnings(False)
         print "GPIO setup successfully"
@@ -144,8 +159,8 @@ class Controller:
                 self.control_hue(action)
         elif device == 'av':
             self.control_hdmi(action)
-        elif device == 'plex':
-            self.control_plex(action)
+        elif device == 'remotes':
+            self.load_remotes()
         elif device == 'party':
             self.control_party(action)
         else:
@@ -154,31 +169,28 @@ class Controller:
             print self.status_message
 
 
-    def control_celing(self, light):
+    def control_celing(self, button):
         """Control ceiling lights using GPIO
 
         Args:
-            light: A string of the light name in the switch dict
+            button: A string of the light name in remotes.yaml
         """
         try:
-            # Set pin to toggle
-            pin = self.switches[light]
-            # To ensure action happens to all lights, press dim or bri before
-            if light == 'allon':
-                self.control_celing('bri')
-                sleep(.5)
-            elif light == 'alloff':
-                self.control_celing('dim')
-                sleep(.5)
-            # Toggle button
-            GPIO.output(pin, GPIO.LOW)
-            sleep(.1)
-            GPIO.output(pin, GPIO.HIGH)
-            # return successfull execution
-            self.status_message = "INFO - '" + light + "' on device '" + \
-                                 self.device + "' completed successfully"
-            self.status_code = 200
-            print self.status_message
+            if button in self.CEILING:
+                # Set pins to toggle
+                pins = self.CEILING[button]['commands']
+                for pin in pins:
+                    # Toggle button
+                    GPIO.output(int(pin), GPIO.LOW)
+                    sleep(.1)
+                    GPIO.output(int(pin), GPIO.HIGH)
+                    if button == 'allon' or button == 'alloff':
+                        sleep(.5)
+                # return successfull execution
+                self.status_message = "INFO - '" + button + "' on device '" + \
+                                     self.device + "' completed successfully"
+                self.status_code = 200
+                print self.status_message
 
         except RuntimeError as exc:
             # return unsuccessfull execution with error
@@ -195,47 +207,14 @@ class Controller:
             action: A string of a command to perform
         """
         try:
-            if action == 'power':
-                status = self.get_status_hue()
-                # Turn off bulbs
-                if status == True:
-                    self.hue.set_light([1, 2, 3], 'on', False)
-                # Turn on bulbs
+            if action in self.HUE:
+                cmd = self.HUE[action]
+                if 'bulb2' in cmd:
+                    cmd2 = cmd.pop('bulb2', None)
+                    self.hue.set_light([1,3], cmd)
+                    self.hue.set_light(2, cmd2)
                 else:
-                    command = {'transitiontime' : 15, 'on' : True}
-                    self.hue.set_light([1, 2, 3], command)
-            # Set the brightness of all bulbs - Keep current preset
-            elif action == 'bri':
-                for bulb in self.hue_bulbs:
-                    bulb.brightness = bri
-            # Preset 'Energize'
-            elif action == 'preset1':
-                for bulb in self.hue_bulbs:
-                    bulb.on = True
-                    bulb.transitiontime = 1
-                    bulb.brightnesss = 254
-                    bulb.colortemp_k = 6410
-            # Preset 'Sunset'
-            elif action == 'preset2':
-                for bulb in self.hue_bulbs:
-                    bulb.on = True
-                    bulb.transitiontime = 1
-                    bulb.brightnesss = 254
-                    bulb.colortemp_k = 2170
-                #set middle bulb
-                self.hue_bulbs[1].xy = [0.6349, 0.3413]
-            # Preset 'Love Shack'
-            elif action == 'preset3':
-                for bulb in self.hue_bulbs:
-                    bulb.on = True
-                    bulb.brightness = 254
-                    #bulb.colormode = 'hs'
-                    bulb.hue = 53498
-                    bulb.saturation = 254
-                    bulb.color_temperature = 200
-                #set middle bulb
-                self.hue_bulbs[1].hue = 48401
-
+                    self.hue.set_light([1,2,3], cmd)
             else:
                 # return unsuccessful execution
                 self.status_message = "ERROR - '" + action + "' on '" + \
@@ -251,6 +230,39 @@ class Controller:
 
         except RuntimeError as exc:
             # return unsuccesfull execution with error
+            self.status_message = "ERROR - " + str(exc)
+            self.status_code = 500
+            print self.status_message
+
+
+    def control_hdmi(self, action):
+        """Control devices using HDMI and libcec
+
+        Args:
+            action: sting of action to perform via cec HDMI
+        """
+        try:
+            if action in self.HDMI:
+                commands = self.HDMI[action]['commands']
+                for command in commands:
+                    to_send = self.lib.CommandFromString(command)
+                    self.lib.Transmit(to_send)
+                    sleep(.1)
+
+            else:
+                # return unsuccessful execution
+                self.status_message = "ERROR - '" + action + "' on '" + \
+                                     self.device + "' not found"
+                self.status_code = 501
+                print self.status_message
+                return
+            # return successfull exectution
+            self.status_message = "INFO - '" + action + "' on '" + \
+                                 self.device + "' completed successfully"
+            self.status_code = 200
+            print self.status_message
+
+        except RuntimeError as exc:
             self.status_message = "ERROR - " + str(exc)
             self.status_code = 500
             print self.status_message
@@ -294,81 +306,3 @@ class Controller:
             self.status_code = 500
             print self.status_message
 
-    def control_hdmi(self, action):
-        """Control devices using HDMI and libcec
-
-        Args:
-            action: sting of action to perform via cec HDMI
-        """
-        try:
-            if action == 'watchtv':
-                tvpower = self.lib.CommandFromString('10:04')
-                setinput = self.lib.CommandFromString('1f:82:21:00')
-
-                self.lib.Transmit(tvpower)
-                sleep(.1)
-                self.lib.Transmit(setinput)
-
-            elif action == 'alloff':
-                alloff = self.lib.CommandFromString('1f:36')
-                self.lib.Transmit(alloff)
-
-            else:
-                # return unsuccessful execution
-                self.status_message = "ERROR - '" + action + "' on '" + \
-                                     self.device + "' not found"
-                self.status_code = 501
-                print self.status_message
-                return
-            # return successfull exectution
-            self.status_message = "INFO - '" + action + "' on '" + \
-                                 self.device + "' completed successfully"
-            self.status_code = 200
-            print self.status_message
-
-        except RuntimeError as exc:
-            self.status_message = "ERROR - " + str(exc)
-            self.status_code = 500
-            print self.status_message
-
-    def control_plex(self, action):
-        """Control Plex media player
-
-        Args:
-            action: string of action to perform
-        """
-        try:
-            url = 'http://10.0.0.39:32500/player/playback/'
-            if action == 'play':
-                response = urllib2.urlopen(url + 'play?type=video')
-                response.read()
-
-            elif action == 'pause':
-                response = urllib2.urlopen(url + 'pause?type=video')
-                response.read()
-
-            elif action == 'skipnext':
-                response = urllib2.urlopen(url + 'skipNext?type=video')
-                response.read()
-
-            elif action == 'skipprevious':
-                response = urllib2.urlopen(url + 'skipPrevious?type=video')
-                response.read()
-
-            else:
-                # return unsuccessful execution
-                self.status_message = "ERROR - '" + action + "' on '" + \
-                                       self.device + "' not found"
-                self.status_code = 501
-                print self.status_message
-                return
-            # return successfull exectution
-            self.status_message = "INFO - '" + action + "' on '" + \
-                                   self.device + "' completed successfully"
-            self.status_code = 200
-            print self.status_message
-
-        except RuntimeError as exc:
-            self.status_message = "ERROR - " + str(exc)
-            self.status_code = 500
-            print self.status_message

@@ -71,3 +71,31 @@ CEILING:              # Set 'buttons' to GPIO pins
         commands:
         - '15'
         - '21'
+HUE:
+    power_on:
+        'on': True
+        'transitiontime': 1
+    power_off:
+        'on': False
+        'transitiontime': 1        
+    preset1:
+        'on': True
+        'transitiontime': 1
+        'brightnesss': 254
+        'colortemp_k': 6410
+    preset2:
+        'on': True
+        'transitiontime': 1
+        'brightnesss': 254
+        'colortemp_k': 2170
+        bulb2:
+            'xy': [0.6349, 0.3413]
+    preset3:
+        'on': True
+        'transitiontime': 1
+        'brightnesss': 254
+        'hue': 53498
+        'saturation': 254
+        'color_temperature': 200
+        bulb2:
+            'hue': 48401
