@@ -1,0 +1,13 @@
+
+body {
+	background-color: #E0E0E0;
+}
+md-content {
+  background-color: #E0E0E0;
+}
+md-card {
+  background-color: #FFFFFF;
+  h2:first-of-type {
+    margin-top: 0;
+  }
+}
