@@ -1,0 +1,102 @@
+HDMI:
+    watchtv:
+    - '10:04'       # Turn on TV
+    - '1f:82:21:00' # Set active sorce to Nexus Player
+    - '14:44:09'    # Press home Button
+    - '14:45'
+    alloff:
+    - '1f:36'       # Broadcast standby power
+    nav_up:
+    - '14:44:01'
+    - '14:45'       # Release the button
+    nav_down:
+    - '14:44:02'
+    - '14:45'
+    nav_left:
+    - '14:44:03'
+    - '14:45'
+    nav_right:
+    - '14:44:04'
+    - '14:45'
+    nav_select:
+    - '14:44:00'
+    - '14:45'
+    nav_back:
+    - '14:44:0D'
+    - '14:45'
+    nav_home:
+    - '14:44:09'
+    - '14:45'
+    vol_up:
+    - '10:44:33'
+    - '10:45'
+    vol_down:
+    - '10:44:42'
+    - '10:45'
+GPIO:
+    ceiling:              # Set 'buttons' to GPIO pins
+        row1:
+        - '3'
+        row2:
+        - '5'
+        row3:
+        - '7'
+        row4:
+        - '11'
+        bri:
+        - '13'
+        dim:
+        - '12'
+        allon:
+        - '13'
+        alloff:
+        - '21'
+HUE:
+    power_on:
+        all:
+            'on': True
+            'transitiontime': 1
+    power_off:
+        all:
+            'on': False
+            'transitiontime': 20
+    preset1:
+        all:
+            'on': True
+            'transitiontime': 15
+            'bri': 254
+            'ct': 250
+    preset2:
+        all:
+            'on': True
+            'transitiontime': 15
+            'bri': 254
+            'ct': 2170
+        bulb2:
+            'on': True
+            'transitiontime': 15
+            'bri': 254
+            'xy': [0.6349, 0.3413]
+    preset3:
+        all:
+            'on': True
+            'transitiontime': 15
+            'bri': 254
+            'hue': 53498
+            'sat': 254
+        bulb2:
+            'on': True
+            'transitiontime': 15
+            'bri': 254
+            'hue': 48401
+IR:
+    fan:
+        power: 'KEY_POWER'
+        oscillate: 'KEY_1'
+        speed: 'KEY_2'
+    receiver:
+        power: 'KEY_POWER'
+        vol_up: 'KEY_VOLUMEUP'
+        vol_down: 'KEY_VOLUMEDOWN'
+        input1: 'KEY_MEDIA'
+        input2: 'KEY_PC'
