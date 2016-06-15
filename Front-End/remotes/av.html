@@ -1,0 +1,73 @@
+<div ng-controller="requestCtrl"  ng-keydown="NexusControl($event)" layout="row" layout-xs="column" layout-align="center start" layout-align-xs="center center">
+	<md-card class="remote-card">
+		<div>
+			<md-card-title>
+				<md-card-title-text>
+					<span class="md-headline">TV</span>
+				</md-card-title-text>
+			</md-card-title>
+		</div>
+		<md-divider></md-divider>
+		<md-list layout="column"">
+			<md-button class="md-raised" ng-click="sendRequest('tv', remote.button)" ng-repeat="remote in av.tv">
+				<p> {{ remote.name }} </p>
+			</md-button>
+	    </md-list>
+    </md-card>
+    <md-card class="remote-card">
+		<div>
+			<md-card-title>
+				<md-card-title-text>
+					<span class="md-headline">Nexus Player</span>
+				</md-card-title-text>
+			</md-card-title>
+		</div>
+		<md-divider></md-divider>
+		<div layout="column" layout-align="center center">
+	        <div>
+	            <md-button class="md-raised" ng-click="sendRequest('nexus', 'nav_up')">
+	                <i class="material-icons">keyboard_arrow_up</i>
+	            </md-button>
+	        </div>
+	        <div layout="row">
+	            <md-button class="md-raised" ng-click="sendRequest('nexus', 'nav_left')">
+	                <i class="material-icons">keyboard_arrow_left</i>
+	                </md-button>
+	            <md-button class="md-raised" ng-click="sendRequest('nexus', 'nav_select')">
+	                <i class="material-icons">fiber_manual_record</i>
+	            </md-button>
+	            <md-button class="md-raised" ng-click="sendRequest('nexus', 'nav_right')">
+	                <i class="material-icons">keyboard_arrow_right</i>
+	            </md-button>
+	        </div>
+	        <div>
+	            <md-button class="md-raised" ng-click="sendRequest('nexus', 'nav_down')">
+	                <i class="material-icons">keyboard_arrow_down</i>
+	            </md-button>
+	        </div>
+	        <div layout="row"  layout-align="space-between center">
+	            <md-button class="raised" ng-click="sendRequest('nexus', 'nav_back')">
+				    <i class="material-icons">keyboard_backspace</i>
+			    </md-button>
+	            <md-button class="raised" ng-click="sendRequest('nexus', 'nav_home')">
+				    <i class="material-icons">home</i>
+			    </md-button>
+	        </div>
+		</div>
+	</md-card>
+    <md-card class="remote-card">
+		<div>
+			<md-card-title>
+				<md-card-title-text>
+					<span class="md-headline">Reciever</span>
+				</md-card-title-text>
+			</md-card-title>
+		</div>
+		<md-divider></md-divider>
+		<md-list layout="column"">
+            <md-button class="md-raised" ng-click="sendRequest('av', remote.button)" ng-repeat="remote in av.receiver">
+			    <p> {{ remote.name }} </p>
+		    </md-button>
+		</md-list>
+    </md-card>
+</div>

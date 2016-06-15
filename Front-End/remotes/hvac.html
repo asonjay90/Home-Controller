@@ -1,0 +1,32 @@
+<div ng-controller="requestCtrl" layout="row" layout-align="center start">
+    <md-card class="remote-card">
+	    <div>
+		    <md-card-title>
+			    <md-card-title-text>
+				    <span class="md-headline">Fan</span>
+			    </md-card-title-text>
+		    </md-card-title>
+	    </div>
+	    <md-divider></md-divider>
+	    <md-list layout="column">
+		    <md-button class="md-raised" ng-click="sendRequest('fan', button.button)" ng-repeat="button in hvac.fan">
+			    <p> {{ button.name }} </p>
+		    </md-button>
+	    </md-list>
+    </md-card>
+    <md-card class="remote-card">
+	    <div>
+		    <md-card-title>
+			    <md-card-title-text>
+				    <span class="md-headline">AC</span>
+			    </md-card-title-text>
+		    </md-card-title>
+	    </div>
+	    <md-divider></md-divider>
+	    <md-list layout="column">
+		    <md-button class="md-raised" ng-click="sendRequest('ac', button.button)" ng-repeat="button in hvac.ac">
+			    <p> {{ button.name }} </p>
+		    </md-button>
+	    </md-list>
+    </md-card>
+</div>
