@@ -1,9 +1,9 @@
-var app = angular.module('HomeCtrl',['ngMaterial', "ngRoute"])
+var app = angular.module('HomeCtrl',['ngMaterial', "ngRoute"]);
 
 app.config(function($mdIconProvider, $routeProvider, $locationProvider) {
     $mdIconProvider
        .iconSet('social', 'img/icons/sets/social-icons.svg', 24)
-       .defaultIconSet('img/icons/sets/core-icons.svg', 24);   
+       .defaultIconSet('img/icons/sets/core-icons.svg', 24);
     $routeProvider.
       when('/lights', {templateUrl: 'remotes/lights.html',   controller: lightCtrl }).
       when('/av', {templateUrl: 'remotes/av.html',   controller: avCtrl }).
@@ -13,7 +13,7 @@ app.config(function($mdIconProvider, $routeProvider, $locationProvider) {
 
 app.controller('tempCtrl', function($scope, $interval, $http) {
     $scope.currentTemp = "Getting Temperature...";
-    $scope.currentTempMetric = 'f'
+    $scope.currentTempMetric = 'f';
     $interval(function() {
         $scope.getTemp();
         }, 60000);
@@ -27,16 +27,16 @@ app.controller('tempCtrl', function($scope, $interval, $http) {
         }, function Error(response) {
             return response.statusText;
         });
-    };    
+    };
     $scope.formatTemp = function(temp) {
         if ($scope.currentTempMetric == 'c') {
             return temp + " C";
-        };
+        }
         if ($scope.currentTempMetric == 'f') {
             tempF = parseFloat(temp) * 1.8 + 32;
             return tempF.toFixed(2) + " F";
-        };
-    };    
+        }
+    };
     $scope.changeMetric = function() {
         if ($scope.currentTempMetric == 'c') {
             $scope.currentTempMetric = 'f';
@@ -44,15 +44,15 @@ app.controller('tempCtrl', function($scope, $interval, $http) {
         }
         else {
             $scope.currentTempMetric = 'c';
-            $scope.getTemp();            
+            $scope.getTemp();
         }
     };
 });
 
 app.controller('tabCtrl', function($scope, $location) {
-    $scope.lights = {}
-    $scope.av = {}
-    $scope.hvac = {}
+    $scope.lights = {};
+    $scope.av = {};
+    $scope.hvac = {};
     $scope.selectedIndex = 0;
 
     $scope.$watch('selectedIndex', function(current, old) {
@@ -72,16 +72,17 @@ app.controller('tabCtrl', function($scope, $location) {
 
 app.controller('requestCtrl', function($scope, $http, $mdToast) {
     
-    $scope.sendRequest = function(device, action, method='POST') {
+    $scope.sendRequest = function(device, action, method='POST', toast=1) {
         $http({
         method : method,
         url : "http://room-controller/" + device + "/" + action
     }).then(function Succes(response) {
+       if (toast)
        $mdToast.show($mdToast.simple().textContent(response.data));
     }, function Error(response) {
         var errMsg = "Error - Can't Reach Controller!";
         $mdToast.show($mdToast.simple().textContent(errMsg));
-    });  
+    });
   };
   
   $scope.NexusControl = function($event) {
@@ -126,31 +127,62 @@ function lightCtrl($scope) {
         { name: 'Sunset', button:'preset2', enabled:false},
 	    { name: 'Love Shack', button:'preset3', enabled:false},
     ];
-};
+}
 
 function avCtrl($scope) {
     $scope.av.tv = [
         { name: 'Watch TV', button:'watchtv', enabled:false},
 	    { name: 'Power Off', button:'alloff', enabled:false},
-	];	
+	];
 	$scope.av.receiver = [
-        { name: 'Receiver Power', button:'power', enabled:false},
+        { name: 'Power', button:'power', enabled:false},
 	    { name: 'Volume Up', button:'vol_up', enabled:false},
 	    { name: 'Volume Down', button:'vol_down', enabled:false},
 	    { name: 'Input: Nexus', button:'input1', enabled:false},
 	    { name: 'Input: PC', button: 'input2', enabled:false},
     ];
-};
+}
 
-function hvacCtrl($scope) {
+function hvacCtrl($scope, $http, $mdToast) {
     $scope.hvac.fan = [
         { name: 'Power', button:'power', enabled:false},
 	    { name: 'Speed', button:'speed', enabled:false},
 	    { name: 'Oscillate', button:'oscillate', enabled:false},
-    ];  
-    $scope.hvac.ac = [
-        { name: 'Power On', button:'pwron', enabled:false},
-        { name: 'Power Off', button:'pwroff', enabled:false},
     ];
+    
+    $scope.getACValues = function(){
+        var url = "http://room-controller/ac/values"
+        $scope.currentACValues = $http.get(url)
+          .success(function(data) {
+            $scope.acPower = data.power;
+            $scope.acThermo = data.thermo;
+            $scope.acMax = data.max;
+            $scope.acMin = data.min;
+            if ($scope.acPower) {$scope.acStatus = "Power Off"}
+            else {$scope.acStatus = "Power On"}
+      });
+    };
+      
+    $scope.acPower = function() {
+        var url = "http://room-controller/ac/pwr"
+        if ($scope.acPower) {
+            $scope.acStatus = "Power Off";
+            $http.post(url+"off");
+            $scope.acValues();
+        }
+        else {
+            $scope.acStatus = "Power On"
+            $http.post(url+"on");
+            $scope.acValues();
+        }
+    }
+    
+    $scope.setACValues = function(enable, max_temp, min_temp) {
+        var url = "http://room-controller/ac/thermostat?enable=" + enable + "&max=" + max_temp + "&min=" + min_temp;
+        $scope.newValues = $http.post(url)
+          .success(function(data) {
+             $mdToast.show($mdToast.simple().textContent("Thermostat Set!"));
+        });
+    };
   
-};
+}

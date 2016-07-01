@@ -12,3 +12,10 @@ body {
     background: #f6f6f6;
 }
 
+.myListItem {
+  height: 75px;
+}
+
+.tempInput {
+  width: 50px;
+}

@@ -19,18 +19,19 @@
 	<body ng-app="HomeCtrl">
 	    <div layout="column" ng-controller="tempCtrl">
             <md-toolbar>
-                <h2 class="md-toolbar-tools" layout-align="space-between center"> 
+                <h2 class="md-toolbar-tools" layout-align="space-between center">
                     <span>HomeCtrl</span>
-                    <a href="" ng-init="getTemp()" ng-click="changeMetric()"> {{  currentTemp }} </a>
+                    <md-button ng-init="getTemp()" ng-click="changeMetric()">{{ currentTemp }}</md-button>
+                    <md-button><i class="material-icons">settings</i></md-button>
                     </h2>
-            </md-toolbar> 
+            </md-toolbar>
         </div>
         <div ng-controller="tabCtrl">
             <md-card>
                 <md-tabs class="main-card" md-center-tabs md-swipe-content md-border-bottom md-selected="selectedIndex">
-                    <md-tab label="Lights"><div ng-view></div></md-tab> 
+                    <md-tab label="Lights"><div ng-view></div></md-tab>
                     <md-tab label="AV"><div ng-view></div></md-tab>
-                    <md-tab label="HVAC"><div ng-view></div></md-tab>  
+                    <md-tab label="HVAC"><div ng-view></div></md-tab>
                 </md-tabs>
             </md-card>
         </div>
