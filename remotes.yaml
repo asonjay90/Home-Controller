@@ -40,17 +40,16 @@ GPIO:
         row2:
         - '5'
         row3:
-        - '7'
-        row4:
-        - '11'
-        bri:
-        - '13'
-        dim:
-        - '12'
+        - '10'
         allon:
         - '13'
         alloff:
         - '21'
+    ac:
+        pwron:
+        - '24'
+        pwroff:
+        - '26'
 HUE:
     power_on:
         all:

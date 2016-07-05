@@ -1,6 +1,12 @@
 #!/bin/bash
 
 URL="room-controller/alive"
+echo "$1"
+if [[ "$1" == "restart" ]]
+  then
+    ps aux | grep api | awk '{print $2}' | xargs kill
+fi
+
 STATUS=$(curl "$URL" -m 10)
 
 if [[ "$STATUS" == "True" ]]

@@ -53,7 +53,30 @@ def nexus_handler(action):
     if request.method == 'POST':
         status = CONTROLLER.HDMI_command(action)
         return CONTROLLER.return_status(API, status)
-    
+
+@API.route('/ac/<action>', methods=['GET', 'POST'])
+def ac_handler(action):
+    if request.method == 'POST':
+        if action == 'thermostat':
+            enable = request.args.get('enable')
+            max_temp = request.args.get('max')
+            min_temp = request.args.get('min')
+            
+            status = CONTROLLER.set_thermo(enable, max_temp, min_temp)
+            return CONTROLLER.return_status(API, status)
+
+        status = CONTROLLER.GPIO_command('ac', action)
+        return CONTROLLER.return_status(API, status)
+    if request.method == 'GET':
+        values = CONTROLLER.get_status('GPIO', 'ac')
+        return CONTROLLER.return_status(API, values)
+
+@API.route('/temp', methods=['GET'])
+def temp_handler():
+    if request.method == 'GET':
+        status = CONTROLLER.get_temp()
+        return CONTROLLER.return_status(API, status)
+
 @API.route('/mood/<action>', methods=['GET', 'POST'])
 def mood_handler(action):
     pass
@@ -70,4 +93,4 @@ def keep_alive_handler():
 
 # Run the app, Baby!
 if __name__ == '__main__':
-    API.run(host='0.0.0.0', port=80, debug=True)
+    API.run(host='0.0.0.0', port=80, debug=True, threaded=True)

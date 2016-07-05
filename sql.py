@@ -1,16 +1,18 @@
 import sqlite3 as sql
 import settings
 import json
+import os.path
 
 class Service(object):
 
     def __init__(self):
-        db = self.establish_connection()
-        with open(settings.SCHEMA, mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-        db.close()
-        
+        if not os.path.isfile(settings.SCHEMA):
+            db = self.establish_connection()
+            with open(settings.SCHEMA, mode='r') as f:
+                db.cursor().executescript(f.read())
+            db.commit()
+            db.close()
+            
     def establish_connection(self):
         connection = sql.connect(settings.DATABASE)
         return connection

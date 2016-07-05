@@ -16,32 +16,41 @@ class Controllers(object):
         self.HDMI_DEVICE = setup.setup_cec()
         self.HUE_DEVICE = setup.setup_hue()
         self.SQL = setup.db_init()
+        self.TEMP = setup.setup_temp()
     
     def GPIO_command(self, device, command):
         if command in self.GPIO_BUTTONS[device]:
             pins = self.GPIO_BUTTONS[device][command]
             current_values = eval(self.SQL.select_query('GPIO', device))
-            for pin in pins:
-                self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.LOW)
-                sleep(.3)
-                self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.HIGH)
-                sleep(.3)
             if device == 'ceiling':
+                for pin in pins:
+                    self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.LOW)
+                    sleep(.3)
+                    self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.HIGH)
+                    sleep(.3)
                 if command not in ['allon', 'alloff']:    
                     current_values[command] = not current_values[command]
                     self.SQL.update_query('GPIO', device, current_values)
-                    return [str(current_values), 200]
+                    return ["Success", 200]
                 if command == 'allon':
                     for light in current_values:
                         current_values[light] = True
-                    return [str(current_values), 200]
+                    return ["Success", 200]
                 else:
                     for light in current_values:
                         current_values[light] = False
-                    return [str(current_values), 200]
-            current_values[command] = not current_values[command]
-            self.SQL.update_query('GPIO', device, current_values)
-            return [str(current_values), 200]
+                    return ["Success", 200]
+                current_values[command] = not current_values[command]
+                self.SQL.update_query('GPIO', device, current_values)
+                return ["Success", 200]
+            elif device == 'ac':
+                for pin in pins:
+                    self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.HIGH)
+                    sleep(.7)
+                    self.GPIO_DEVICE.output(int(pin), self.GPIO_DEVICE.LOW)
+                current_values['power'] = not current_values['power']
+                self.SQL.update_query('GPIO', device, current_values)
+                return ["Success", 200]
         return ["Unknown Command!", 400]
 
     def Hue_command(self, command):
@@ -85,7 +94,7 @@ class Controllers(object):
                     current_values['input'] = command
             self.SQL.update_query('IR', device, current_values)
             
-            return [str(current_values), 200]
+            return ["Success", 200]
         return ["Unknown Command!", 400]
 
     def reload_devices(self, setup):
@@ -93,12 +102,39 @@ class Controllers(object):
         return ["Success!", 200]
 
     def keep_alive(self):
-	return 'True', 200    
+	    return 'True', 200
 
+    def read_temp_raw(self):
+        f = open(self.TEMP, 'r')
+        lines = f.readlines()
+        f.close()
+        return lines
+
+    def get_temp(self):
+        lines = self.read_temp_raw()
+        while lines[0].strip()[-3:] != 'YES':
+            time.sleep(0.2)
+            lines = self.read_temp_raw()
+        equals_pos = lines[1].find('t=')
+        if equals_pos != -1:
+            temp_string = lines[1][equals_pos+2:]
+            temp_c = round(float(temp_string) / 1000.0, 1)
+            temp_f = round(temp_c * 9.0 / 5.0 + 32.0, 1)
+            return [str(temp_c), 200]
+        return ["ERROR", 200]
+        
+    def set_thermo(self,enable, max_temp, min_temp):
+        current_values = eval(self.SQL.select_query('GPIO', 'ac'))
+        enable = True if enable == 'true' else False
+        current_values['thermo'] = enable
+        current_values['max'] = max_temp
+        current_values['min'] = min_temp
+        self.SQL.update_query('GPIO', 'ac', current_values)
+        return self.get_status('GPIO', 'ac')
 
     def get_status(self, interface, device):
-        status = self.SQL.select_query(interface, device)
-        return status, 200
+        status = eval(self.SQL.select_query(interface, device))
+        return json.dumps(status), 200
      
     def return_status(self, API, status):
         response = API.make_response(status[0])
