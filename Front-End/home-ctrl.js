@@ -150,6 +150,8 @@ function hvacCtrl($scope, $http, $mdToast) {
 	    { name: 'Oscillate', button:'oscillate', enabled:false},
     ];
     
+    $scope.hvac.temps = ["20","21","22","23","24","25","26","27","28","29","30"];
+    
     $scope.getACValues = function(){
         var url = "http://room-controller/ac/values"
         $scope.currentACValues = $http.get(url)
@@ -158,22 +160,22 @@ function hvacCtrl($scope, $http, $mdToast) {
             $scope.acThermo = data.thermo;
             $scope.acMax = data.max;
             $scope.acMin = data.min;
-            if ($scope.acPower) {$scope.acStatus = "Power Off"}
-            else {$scope.acStatus = "Power On"}
+            if ($scope.acPower) {$scope.acStatus = "pwroff"}
+            else {$scope.acStatus = "pwron"}
       });
     };
       
-    $scope.acPower = function() {
+    $scope.setACPower = function(status) {
         var url = "http://room-controller/ac/pwr"
-        if ($scope.acPower) {
+        if (status) {
             $scope.acStatus = "Power Off";
-            $http.post(url+"off");
-            $scope.acValues();
+            $http.post(url+"on");
+            $scope.getACValues();
         }
         else {
             $scope.acStatus = "Power On"
-            $http.post(url+"on");
-            $scope.acValues();
+            $http.post(url+"off");
+            $scope.getACValues();
         }
     }
     

@@ -24,28 +24,32 @@
 	    </div>
 	    <md-divider></md-divider>
 	    <md-list layout="column">
-	       <div class="myListItem" layout-align="space-between center">
-		    <md-button class="md-raised" ng-click="sendRequest('ac', 'pwron')">
-			    <p> Power On </p>
-		    </md-button>
-		    <md-button class="md-raised" ng-click="sendRequest('ac', 'pwroff')">
-			    <p> Power Off </p>
-		    </md-button>
-		    </div>
-		    <md-subheader>Thermostat Control</md-subheader>
+	       <md-list-item class="myListItem" layout-align="end center">
+	       <p><div ng-repeat="v in [0]">
+	          <md-switch  ng-model="acPower" ng-click="setACPower(!acPower)">{{acPower ? "Power On" : "Power Off"}}</md-switch>
+	       </div></p>
+		   </md-list-item>
+		    <md-subheader>Thermostat</md-subheader>
 		    <md-list-item class="myListItem" layout-align="space-between center">
-		      <md-switch ng-model="acThermo">{{acThermo ? "On" : "Off"}}</md-switch>
-		      <md-button class="md-raised" ng-click="setACValues(acThermo, acMax, acMin)">Set</md-button>
-		    </md-list-item>
-		    <md-list-item class="myListItem"  layout-align="space-between center">
-		      <md-input-container>
+		    <p><div ng-repeat="v in [0]">
+		      <md-switch ng-model="acThermo" ng-click="setACValues(!acThermo, acMax, acMin)">{{acThermo ? "On" : "Off"}}</md-switch>
+		    </div></p>
+		  <p><md-input-container>
             <label>Max</label>
-		    	  <input class="tempInput" type="text" ng-model="acMax" required>
-		    	</md-input-container>
-          <md-input-container>
+                <md-select ng-model="acMax" md-on-close="setACValues(acThermo, acMax, acMin)">
+                    <md-option ng-repeat="temp in hvac.temps">
+                    {{::temp}}
+                    </md-option>
+                </md-select>
+		  </md-input-container></p>
+          <p><md-input-container>
             <label>Min</label>
-		    	  <input class="tempInput" type="text" ng-model="acMin" required>
-		    	</md-input-container>
+		    	   <md-select ng-model="acMin"md-on-close="setACValues(acThermo, acMax, acMin)">
+                    <md-option ng-repeat="temp in hvac.temps">
+                    {{::temp}}
+                    </md-option>
+                </md-select>
+		  </md-input-container></p>
         </md-list-item>
 	    </md-list>
     </md-card>
